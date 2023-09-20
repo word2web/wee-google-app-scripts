@@ -1,0 +1,58 @@
+function onOpen() {
+    var ss = SpreadsheetApp.getActiveSpreadsheet();
+    var searchMenuEntries = [{
+        name: "Create a File List from Folder",
+        functionName: "start"
+    }];
+    ss.addMenu("File List", searchMenuEntries);
+}
+
+function start() {
+    var sheet = SpreadsheetApp.getActiveSheet();
+    sheet.clear();
+    // Comment below enable it if you need one sheet
+    sheet.appendRow(["Name", "Folder", "Type", "Date", "Size", "URL"]);
+
+    var folderId = Browser.inputBox("Enter Folder ID (this will destroy the current spreadsheet):");
+    // var folderId = "your_folder_id_here";
+
+    var folder = DriveApp.getFolderById(folderId);
+
+    if (folder) {
+        processFolder(folder);
+    } else {
+        Browser.msgBox('Folder not found!');
+    }
+
+    function processFolder(folder) {
+        var contents = folder.getFiles();
+        addFilesToSheet(contents, folder);
+
+        var subFolders = folder.getFolders();
+        while (subFolders.hasNext()) {
+            var subFolder = subFolders.next();
+            processFolder(subFolder);
+        }
+    }
+
+    function addFilesToSheet(files, folder) {
+        var data;
+        var folderName = folder.getName();
+        // Delete these two lines below if you need one Sheet
+        // sheet.appendRow(["Folder: " + folder]);
+        // sheet.appendRow(["Name", "Folder", "Type", "Date", "Size", "URL"]);
+        while (files.hasNext()) {
+            var file = files.next();
+            Logger.log(file.getName());
+
+            sheet.appendRow([
+                file.getName(),
+                folderName,
+                file.getMimeType(),
+                file.getDateCreated(),
+                file.getSize() / 1024,
+                file.getUrl()
+            ]);
+        }
+    }
+}
