@@ -1,0 +1,14 @@
+function myFunction() {
+  const countFilesFolders = (folder, obj = {files: [], folders: []}) => {
+    obj.folders.push(folder);
+    const files = folder.getFiles();
+    while (files.hasNext()) obj.files.push(files.next());
+    const folders = folder.getFolders();
+    while (folders.hasNext()) countFilesFolders(folders.next(), obj);
+    return {fileCount: obj.files.length, folderCount: obj.folders.length - 1};
+  }
+
+  const topFolderId = "###"; // Please set the top folder ID of the folder you want to check.
+  const res = countFilesFolders(DriveApp.getFolderById(topFolderId));
+  console.log(res)
+}
