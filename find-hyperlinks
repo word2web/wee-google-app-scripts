@@ -1,0 +1,56 @@
+function scanFolderForHyperlinks() {
+  // Replace with the ID of your target folder
+  const folderId = "YOUR_FOLDER_ID";
+  
+  // Get the folder object
+  const folder = DriveApp.getFolderById(folderId);
+  
+  // Create a new sheet to hold the results
+  const sheet = SpreadsheetApp.getActiveSpreadsheet().insertSheet("Hyperlinks");
+  
+  // Initialize header row
+  sheet.appendRow(["File Name", "Hyperlink Count"]);
+  
+  // Iterate through files in the folder
+  const files = folder.getFiles();
+  while (files.hasNext()) {
+    const file = files.next();
+    const fileName = file.getName();
+    let hyperlinkCount = 0;
+    
+    // Check for hyperlinks in different ways depending on file type
+    switch (file.getMimeType()) {
+      case MimeType.GOOGLE_DOCS:
+        hyperlinkCount = getHyperlinkCountFromDoc(file);
+        break;
+      case MimeType.GOOGLE_SHEETS:
+        hyperlinkCount = getHyperlinkCountFromSheet(file);
+        break;
+      case MimeType.GOOGLE_SLIDES:
+        hyperlinkCount = getHyperlinkCountFromSlides(file);
+        break;
+      // Add more cases for other relevant file types
+      default:
+        // You can implement logic to handle other file types or ignore them
+    }
+    
+    // Add results to the sheet
+    sheet.appendRow([fileName, hyperlinkCount]);
+  }
+}
+
+// Helper functions to count hyperlinks based on file type
+function getHyperlinkCountFromDoc(doc) {
+  const body = DocumentApp.openById(doc.getId()).getBody();
+  return body.getInlineObjects().filter(obj => obj.getType() === InlineObjectTypes.HYPERLINK).length;
+}
+
+function getHyperlinkCountFromSheet(sheet) {
+  const activeSheet = SpreadsheetApp.openById(sheet.getId()).getActiveSheet();
+  return activeSheet.getRichTextValue().split("HYPERLINK").length - 1;
+}
+
+function getHyperlinkCountFromSlides(presentation) {
+  // Implement logic to count hyperlinks from Google Slides (requires Apps Script API v2)
+  throw new Error("Hyperlink counting from Slides is not yet implemented.");
+}
